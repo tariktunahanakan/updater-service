@@ -10,9 +10,7 @@ build:
 	go build -o bin/updater .
 
 release:
-	docker build \
-	  --build-arg CACHEBUST=$(shell date +%s) \
-	  -t $(IMAGE):$(TAG) .
+	docker build -t $(IMAGE):$(TAG) .
 
 digest:
 	@docker inspect --format='{{.Id}}' $(IMAGE):$(TAG)

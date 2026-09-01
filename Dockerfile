@@ -1,14 +1,12 @@
-FROM golang:latest
-
-ARG CACHEBUST=1
-
-RUN apt-get update && apt-get install -y curl ca-certificates git
+FROM golang:1.21-bookworm
 
 WORKDIR /src
 COPY . .
 
-RUN go build \
-      -ldflags "-X main.BuildTime=$(date -u '+%Y-%m-%dT%H:%M:%S') -X main.Commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)" \
+ARG COMMIT=unknown
+ARG BUILD_TIME=1970-01-01T00:00:00Z
+RUN CGO_ENABLED=0 go build -trimpath -buildvcs=false \
+      -ldflags "-X main.BuildTime=${BUILD_TIME} -X main.Commit=${COMMIT}" \
       -o /usr/local/bin/updater .
 
 EXPOSE 8080
