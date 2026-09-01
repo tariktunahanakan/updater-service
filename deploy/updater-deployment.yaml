@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: updater
+  namespace: prod
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: updater
+  template:
+    metadata:
+      labels:
+        app: updater
+    spec:
+      containers:
+        - name: updater
+          image: berqnet/updater:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: UPDATE_FEED_TOKEN
+              value: "brq_live_8f3c1d9a4e7b2005c11a"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: updater
+  namespace: prod
+spec:
+  selector:
+    app: updater-svc
+  ports:
+    - port: 80
+      targetPort: 8080
