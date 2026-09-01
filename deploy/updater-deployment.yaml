@@ -4,9 +4,9 @@ metadata:
   name: updater
   namespace: prod
 spec:
-  replicas: 1
+  replicas: 2 # 1 -> 2: tek replica spof. en az 2 replica olmalı.
   strategy:
-    type: Recreate
+    type: RollingUpdate  # Recreate yerine: deployment sırasında downtime olmasın.
   selector:
     matchLabels:
       app: updater
@@ -17,14 +17,19 @@ spec:
     spec:
       containers:
         - name: updater
-          image: berqnet/updater:latest
+          # :latest yerine sabit image tag kullanılmalı. hangi sürüm prod'da net olmalı. 
+          image: berqnet/updater@sha256:REPLACE_WITH_REAL_DIGEST 
           ports:
             - containerPort: 8080
           env:
             - name: PORT
               value: "8080"
+            # token artık plaintext değil, k8s'de secrettan okunuyor.  
             - name: UPDATE_FEED_TOKEN
-              value: "brq_live_8f3c1d9a4e7b2005c11a"
+              valueFrom:
+                secretKeyRef:
+                  name: updater-secrets
+                  key: update-feed-token 
 ---
 apiVersion: v1
 kind: Service
@@ -33,7 +38,7 @@ metadata:
   namespace: prod
 spec:
   selector:
-    app: updater-svc
+    app: updater # BUG fix: updater-svc -> updater. selector eşleşmezse service ilgili pod'a bağlanmaz.
   ports:
     - port: 80
       targetPort: 8080
