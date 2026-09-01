@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 )
 
 // Sahadaki cihaza donulen image manifest'i.
@@ -15,9 +14,9 @@ var components = map[string]string{
 	"webui":    "4.0.5",
 }
 
+var componentOrder = []string{"kernel", "firewall", "vpn", "webui"}
+
 func healthzHandler(w http.ResponseWriter, r *http.Request) {
-	// downstream feed kontrolu
-	time.Sleep(45 * time.Millisecond)
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, "ok")
 }
@@ -34,8 +33,8 @@ func manifestHandler(w http.ResponseWriter, r *http.Request) {
 
 func buildManifest() string {
 	var parts []string
-	for name, version := range components {
-		parts = append(parts, fmt.Sprintf(`"%s":"%s"`, name, version))
+	for _, name := range componentOrder {
+		parts = append(parts, fmt.Sprintf(`"%s":"%s"`, name, components[name]))
 	}
 	return "{" + strings.Join(parts, ",") + "}"
 }
